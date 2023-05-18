@@ -1,5 +1,5 @@
 [package]
-name = "grrs"
+name = "cloner_rs"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,9 @@ clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 indicatif = "0.17.3"
 tempdir = "0.3.7"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release]
+opt-level = 3
