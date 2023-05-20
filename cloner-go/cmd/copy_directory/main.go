@@ -15,7 +15,7 @@ func main() {
 	source := os.Args[1]
 	destination := os.Args[2]
 
-	err := f.RecursePrintDirectory(source, destination)
+	err := f.RecursiveCopy(source, destination)
 
 	if err != nil {
 		fmt.Println("Error: ", err)

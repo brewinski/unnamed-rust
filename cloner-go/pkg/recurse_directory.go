@@ -3,39 +3,55 @@ package files
 import (
 	"fmt"
 	"os"
+	"sync"
 )
 
-func RecursePrintDirectory(source string, destination string) error {
-	// read a file from source path
+func RecursiveCopy(source string, destination string) error {
+	sourceInfo, err := os.Stat(source)
+	if err != nil {
+		return fmt.Errorf("failed to get source file/directory information: %w", err)
+	}
+
+	if !sourceInfo.IsDir() {
+		return CopyFile(source, destination)
+	}
+
+	err = os.MkdirAll(destination, sourceInfo.Mode())
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
 	sourceDir, err := os.Open(source)
 	if err != nil {
-		return fmt.Errorf("RecursePrintDirectory: %w", err)
+		return fmt.Errorf("failed to open source directory: %w", err)
 	}
-	// close the source directory when the function completes execution
 	defer sourceDir.Close()
-	// defer fmt.Println("Closing: ", source)
 
-	// check source dir is a directory
-	sourceDirInfo, err := sourceDir.Readdir(-1)
+	sourceFiles, err := sourceDir.Readdir(-1)
 	if err != nil {
-		return fmt.Errorf("RecursePrintDirectory: %w", err)
+		return fmt.Errorf("failed to read source directory: %w", err)
 	}
 
-	dirErr := os.MkdirAll(destination, os.ModePerm)
-	if dirErr != nil {
-		return fmt.Errorf("RecursePrintDirectory: %w", dirErr)
-	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(sourceFiles))
 
-	// read the content of the file
-	for _, file := range sourceDirInfo {
-		if !file.IsDir() {
-			CopyFile(source+"/"+file.Name(), destination+"/"+file.Name())
-		}
-		// check if the file is a directory
+	for _, file := range sourceFiles {
+		sourcePath := source + "/" + file.Name()
+		destinationPath := destination + "/" + file.Name()
+
 		if file.IsDir() {
-			RecursePrintDirectory(source+"/"+file.Name(), destination+"/"+file.Name())
+			go func(src string, dest string) {
+				defer wg.Done()
+				_ = RecursiveCopy(sourcePath, destinationPath)
+			}(sourcePath, destinationPath)
+		} else {
+			go func(src string, dest string) {
+				defer wg.Done()
+				_ = CopyFile(sourcePath, destinationPath)
+			}(sourcePath, destinationPath)
 		}
 	}
 
+	wg.Wait()
 	return nil
 }
