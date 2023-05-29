@@ -7,7 +7,8 @@ import (
 )
 
 func CopyFile(source, destination string) error {
-	sourceFile, err := os.ReadFile(source) // os.Open(source)
+	sourceFile, err := os.ReadFile(source)
+
 	if err != nil {
 		return fmt.Errorf("failed to open source file: %w", err)
 	}
@@ -18,17 +19,6 @@ func CopyFile(source, destination string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %w", err)
 	}
-
-	// _, err = io.Copy(destinationFile, sourceFile)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to copy file contents: %w", err)
-	// }
-
-	// // Set the file permissions (e.g., 0644)
-	// err = destinationFile.Chmod(0644)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to set file permissions: %w", err)
-	// }
 
 	return nil
 }
